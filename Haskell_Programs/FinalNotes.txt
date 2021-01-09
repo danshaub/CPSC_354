@@ -1,0 +1,385 @@
+1.1
+abstract reduction system:
+    An abstract reduction system is a set 'A' with a relation '->' that is a subset of all ways to pair two elements of 'A'
+    In other words, ARSs are a set of rules to transform one element of 'A' to another element of 'A'
+
+reflexive and transitive closure of a relation
+    An extention of the relation '->' in an ARS that is denoted '*->'. This new relation allows for an arbitrary number
+    of application of the original relation (or ARS rules) in a transitive and reflexive maner. Meaning, an application
+    of the reflexive and transitive closure can reduce an element 'a' \\in\\ 'A' to its normal form, leave the element unchanged,
+    or reduce to any state within the same equivalency class of 'a' that can be obtained by applying '->' some finite number of times.
+
+normal form
+    For some ARS ('A', '->'), 'a' \\in\\ 'A' is a normal form if there is no 'a' -> 'b'
+    in other words, 'a' is irreducible
+
+confluence
+    An ARS ('A', '->') is confluent if for x,y,z,w \\in\\ 'A', 'x' -> 'y', 'x' -> 'z', 
+    'y' *-> 'w', and 'z' *-> 'w'. Or, regardless of how rules of a rewrite system are
+    applied to an element, all paths converge on the same element (or elements, if there is no normal form) of 'A'
+
+measure function
+    A function used to prove termination of an ARS. For some ARS ('A', '->'), if 'a' -> 'b' then 
+    Measure (a) > Measure (b) for all 'a' and 'b' \\in\\ 'A'. Any application of the rules of the
+    rewrite system will decrease the value of the measure function.
+
+1.2.
+    x y λx . λy . x y x λx . x y x
+    x y λx . (λy . x y x λx . x y x)
+    x y λx . (λy . (x y x λx . x y x))
+    x y λx . (λy . (x y x λx . (x y x)))
+    (x y) λx . (λy . (x y x λx . (x y x)))
+    (x y) λx . (λy . ((x y) x λx . (x y x)))
+    (x y) λx . (λy . (((x y) x) λx . (x y x)))
+    (x y) λx . (λy . (((x y) x) λx . (x y x)))
+    (x y) λx . (λy . (((x y) x) λx . ((x y) x)))
+    (x y) (λx . (λy . (((x y) x) (λx . ((x y) x)))))
+
+    EApp 
+        (EApp 
+            (Ident "x") 
+            (Ident "y")
+        ) 
+        (EAbs 
+            (Ident "x")
+            (EAbs 
+                (Ident "y")
+                (EApp 
+                    (EApp 
+                        (EApp 
+                            (Ident "x") 
+                            (Ident "y")
+                        )
+                        (Ident "x")
+                    )
+                    (EAbs 
+                        (Ident "x")
+                        (EApp 
+                            (EApp 
+                                (Ident "x")
+                                (Ident "y")
+                            )
+                            (Ident "x")
+                        )
+                    )
+                )
+            )
+        )
+
+    EApp (EApp (Ident "x") (Ident "y")) (EAbs (Ident "x")(EAbs (Ident "y")(EApp (EApp (EApp (Ident "x") (Ident "y"))(Ident "x"))(EAbs (Ident "x")(EApp (EApp (Ident "x")(Ident "y"))(Ident "x"))))))
+
+1.3
+    (λx . λy . λz. x z) (λx . x) ((λx . x x)(λx . x x)) y
+    (λy . λz. (λx . x) z) ((λx . x x)(λx . x x)) y
+    (λz. (λx . x) z) y
+    (λx . x) y
+    y
+
+1.4
+mergeLists ((3 : #) : (2 : #) : (1 : #) : #)
+    = mergeLists ( (merge (3 : #) (2 : #)) : (mergeLists ((1 : #) : #)) )
+    = mergeLists ( (2 : (merge (3 : #) #)) : (mergeLists ((1 : #) : #)) )
+    = mergeLists ( (2 : 3 : #) : (mergeLists ((1 : #) : #)) )
+    = mergeLists ( (2 : 3 : #) : (1 : #) : # )
+    = (merge (2 : 3 : #) (1 : #)):#
+    = ((1):(merge (2 : 3 : #) #)):#
+    = (1 : 2 : 3 : #) : #
+
+2.1
+    XaaaYbbZ
+    Xaaa$bYbZ
+    Xaa$bcaYbZ
+    Xaa$bca$bYZ
+    Xa$bcac$bcaYZ
+    X$bcacac$bcaYZ
+    X$bccaca$bcaYZ
+    X$bccac$bcacaYZ
+    X$bccca$bccaaYZ
+    X$bccc$bcaccaaYZ
+    X$bccc$bccacaaYZ
+    X$bccc$bcccaaaYZ
+    Xccc$bcccaaaYZ
+    cccX$bcccaaaYZ
+    cccXcccaaaYZ
+    ccccccXaaaYZ
+    ccccccXaaaZ
+    ccccccXZ
+    cccccc
+
+    The ARS is confluent. This ARS clearly multiplies the nubmer of a's
+    number of b's together with the result as the number of c's, and it's
+    possible to take multiple paths to that result. You can either apply
+    the first rule once then use the second rule #a times and use the third
+    rule to remove the first 'b' and rearrange everything so the c's are in front
+    followed by X then the a's then Y then the b's and finally the Z. Or you can 
+    treat the rules as though they have precidence levels and apply the highest
+    rules first (as shown above). Because you can take multiple "paths" to the
+    same result, the system is confluent
+
+2.2
+    Yes, the normal form for any string XAYBZ will be a string of c's
+    as long as the product of the length of A and B.
+
+2.3
+    XaaaYbbbZ
+    cccccccccXaaaYZ
+
+2.4
+    The invariant for (A', ->') is I(a) = len(C) + (len(A) * len(B))
+
+    Looking at the simplest case, XaYbZ the redcution in (A, ->) would be:
+
+        XaYbZ [I = 0 + 1 * 1 = 1]
+        Xa$bYZ
+        X$bcaYZ
+        XcaYZ
+        cXaYZ [I = 1 + 1 * 0 = 1]
+
+    Because the invariant didn't change before and after the application
+    of C1 X A1 Y B1 Z ->* C2 X A2 Y B2 Z via the rules of (A, ->), the
+    invariant is valid for (A', ->').
+
+2.5
+    The invariant above proves the result for 2.2 because the normal form
+    of a string reduced via (A', ->') will have a B of length zero, meaning
+    the lenght of C must be the original length of A times the originla 
+    length of B. Then, the X, Y, Z, and all the components of A can be removed
+    using the last three rules of (A, ->):
+
+        YZ -> Z
+        aZ -> Z
+        XZ -> 
+
+    leaving you with just a string of c's. 
+
+
+3.1
+    The only rules necessary are those similar to ab -> ba such that
+    every pair of letters is represented and the letter representing
+    the greater value of the pair ends up on the left:
+
+    IV -> VI
+    IX -> XI
+    IL -> LI
+    IC -> CI
+    ID -> DI
+    IM -> MI
+
+    VX -> XV
+    VL -> LV
+    VC -> CV
+    VD -> DV
+    VM -> MV
+
+    XL -> LX
+    XC -> CX
+    XD -> DX
+    XM -> MX
+
+    LC -> CL
+    LD -> DL
+    LM -> ML
+
+    CD -> DC
+    CM -> MC
+
+    DM -> MD
+
+3.2
+    To then transform a sorted string of letters into additive
+    Roman Numerals, you simply need to provide rules to condence
+    enough of one letter into one of the next highest letter:
+
+    IIIII -> V
+    VV -> X
+    XXXXX -> L
+    LL -> C
+    CCCCC -> D
+    DD -> M
+
+3.3
+    Adding two additive Roman Numerals is as simple as concatenating
+    them together, sorting them, then contracting them back into
+    additive Roman Numerals. The rule for concatenation is just:
+
+    $x$y$ -> xy 
+
+    The other two steps already exist in the ARS from 3.1 and 3.2
+
+3.4
+    $x$I -> x$x$
+    $x$$ ->
+
+3.5
+    For the purposes of this rewrite system, let the notation x(n) be a string
+    made from n repetitions of x concatenated together where n is \\in\\ \\Natural Numbers\\
+    and x is an Additive Roman Numeral. 
+    
+    For example if x = VIII then x(3) would be VIIIVIIIVIII
+
+    $x$I -> x$x$
+    $x$V -> x(5)$x$
+    $x$X -> x(10)$x$
+    $x$L -> x(50)$x$
+    $x$C -> x(100)$x$
+    $x$D -> x(500)$x$
+    $x$M -> x(1000)$x$
+    $x$$ ->
+
+    Including all rules from ARS 3.1 and 3.2 
+
+3.6
+    Ordinary to Additive:
+
+        IV -> IIII
+        IX -> VIIII
+        XL -> XXXX
+        XC -> LXXXX
+        CD -> CCCC
+        CM -> DCCCC
+
+    Additive to Ordinary:
+
+        IIII -> IV
+        VIIII -> IX
+        XXXX -> XL
+        LXXXX -> XC
+        CCCC -> CD
+        DCCCC -> CM
+
+        VIV -> IX
+        LXL -> XC
+        DCD -> CM
+
+3.7
+    3.1
+        The first rewrite system is trivially confluent and terminating.
+        "Bubble sort" ARS's always are because the sorting rules can be
+        applied in any order and the normal form will still be sorted the
+        same way:
+
+            IIVX    IIVX
+            IIXV    IVIX
+            IXIV    IVXI
+            IXVI    VIXI
+            XIVI    VXII
+            XVII    XVII
+
+        A measure function for this ARS could be assiging each letter to be
+        a digit in base 8
+
+            M = 1
+            D = 2
+            C = 3
+            L = 4
+            X = 5
+            V = 6
+            I = 7
+
+        then simply rewriting the string as a base 8 numeral by replacing
+        each letter with its corresponding digit.
+
+            Measure(IMXV) = 7156
+            Measure(MXVI) = 1567
+
+    3.2
+        Even with the addition of the new rules, the system is still confluent
+        and terminating. The rules that contract groups of letters into the next
+        highest letter can be applied in any order and acchieve the same result
+
+            DDLLIIIII   DDLLIIIII
+            MLLIIIII    DDLLV
+            MCIIIII     DDCV
+            MCV         MCV
+        
+        The same measure function for 3.1 works for 3.2:
+
+            Measure(DDCV) = 2236
+            Measure(MCV)  = 136
+
+    3.3
+        The singular rule added in 3.3 clearly doesn't effect termination because
+        it isn't the inverse of any other rule (like ab -> ba and ba -> ab are
+        inverses of one another). Confluence is maintained because addition is
+        confluent, which is what the rule represents.
+
+        The measure function must be edited slightly. Strings will now be
+        written in base 9 with $ = 8
+
+            Measure($I$I$) = 87878
+            Measure(II)    = 88
+
+    3.4
+        This ARS is confluent simply because there is only ever one way to
+        apply the rules of the system. 
+
+            $II$III$
+            II$II$II$
+            IIII$II$I$
+            IIIIII$II$$
+            IIIIII
+
+        It is terminating for the same reason. But a measure function that
+        proves termination is simply one that counts the number of I's between
+        the second and last $ and adds 1 if there are still $'s in the system
+
+            Measure($II$III$) = 4
+            Measure(IIIIII$II$$) = 1
+            Measure(IIIIII) = 0
+
+    3.5
+        This is confluent in the same way as the system in 3.4, just with
+        the additional confluence added by including the rules for 3.1 and 3.2
+
+            $V$IIII$    $V$IIII$
+            ->*         ->*
+            VVVV        VVVV
+            XVV         VVX
+            XX          XX
+
+        Proving termination via a single measure function could be done, however
+        it is possible to treat just the rules for multiplication as their own
+        ARS separate from the rules that ensure the result of the multiplication
+        is another Additive Roman Numeral. Proving termination for each component
+        of the ARS separately is sufficent in proving termination of the whole system 
+
+        Because of that, the measure function for just the multiplication rules could
+        be exactly the same as the function for 3.4.
+
+            Measure($II$V$) = 6
+            Measure(IIIIII$II$$) = 1
+            Measure(IIIIII) = 0
+
+    3.6
+        Ordinary to Additive
+            This ARS is confluent assuming all strings "passed" to it
+            are Ordinary Roman Numerals. If they are, all possible
+            reducible substrings can never conflict with one another,
+            so the order in which the substrings are reduced does not matter.
+
+                CMXLIX              CMXLIX
+                DCCCCXLIX           CMXXXXIX
+                DCCCCXXXXIX         CMXXXXVIIII
+                DCCCCXXXXVIIII      DCCCCXXXXVIIII
+
+            Termination can be proven with a simple measure function that
+            counts how many reducible substrings are present.
+
+                Measure(CMXLIX)         = 3
+                Measure(DCCCCXLIX)      = 2
+                Measure(DCCCCXXXXIX)    = 1
+                Measure(DCCCCXXXXVIIII) = 0
+
+        Additive to Ordinary
+            This ARS is the exact inverse of the previous ARS, so proofs of
+            confluence and termination will be inverses of one another as well
+
+                DCCCCXXXXVIIII      DCCCCXXXXVIIII
+                DCCCCXXXXIX         CMXXXXVIIII
+                DCCCCXLIX           CMXXXXIX
+                CMXLIX              CMXLIX
+
+                Measure(DCCCCXXXXVIIII) = 3
+                Measure(DCCCCXXXXIX)    = 2
+                Measure(DCCCCXLIX)      = 1
+                Measure(CMXLIX)         = 30

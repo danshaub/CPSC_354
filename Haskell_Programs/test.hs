@@ -1,5 +1,6 @@
 -- Writing Haskell functions is very easy!
 -- They are as simple to write as mathematical definitions...
+len :: Num p => [a] -> p
 len [] = 0
 len (x : xs) = 1 + len xs
 
@@ -15,6 +16,7 @@ len (x : xs) = 1 + len xs
 -- You can use recursion in Haskell too!
 -- Before a function with parameters recurses, it evaluates any expressions passed as parameters.
 -- This function computes the factorial of a number x.
+fact :: (Eq p, Num p) => p -> p
 fact 0 = 1
 fact x = x * fact (x -1)
 
@@ -25,38 +27,45 @@ fact x = x * fact (x -1)
 -- When using the : operator, as long as the right side evaluates to a list, you're good to go!
 -- Because of that, Haskell will evaluate the right side first.
 -- That's how (x : y : xs) works!
+select_evens :: [a] -> [a]
 select_evens [] = []
+select_evens [x] = []
 select_evens (x : y : ys) = y : select_evens (ys)
-select_evens x = []
 
 select_odds [] = []
+select_odds [x] = [x]
 select_odds (x : y : ys) = x : select_odds (ys)
-select_odds x = x
 
 -- If you need to have some control flow, try the "if then else" structure!
 -- When used in a recursive function, the function only recurses if the condition you give it is met
 -- So this function checks if the current element of a list is equal to the key, m.
 -- Otherwise it recurses on the next element of the list
 -- source: https://en.wikibooks.org/wiki/Haskell/Control_structures
-member (m, []) = False
-member (m, x : xs) =
+member m [] = False
+member m (x : xs) =
   if m == x
     then True
-    else member (m, xs)
+    else member m xs
+
+-- You can also use haskell's lazy boolean operators:
+-- The boolean operator || means "or", however the right side of the operation isn't evaluated if the left side is true
+-- -- Likewise, when evaluating &&, if the left side is false then the right side isn't evaluated
+-- member2 [] y = False
+-- member2 (x : xs) y = (x == y) || (member2 xs y)
 
 -- The operator ++ is used to concatenate two lists
 -- This is very useful so you don't have to use the : operator for everything
-append (x, y) = x ++ y
+append_simple (x, y) = x ++ y
 
 -- If you wanted to define your own concatenation operator, it would be something like this:
---  append([], []) = []
---  append(xs, []) = xs
---  append([], ys) = ys
---  append(x:xs, y:ys) = x:append(xs, y:ys)
+append [] [] = []
+append xs [] = xs
+append [] ys = ys
+append (x : xs) (y : ys) = x : append xs (y : ys)
 
 -- Here's how to reverse the order of a list:
 revert [] = []
-revert (x : xs) = append (revert (xs), x : [])
+revert (x : xs) = append (revert (xs)) (x : [])
 
 -- You can nest conditional statements too!
 
@@ -75,7 +84,7 @@ zipp (x : xs, []) = x : xs
 zipp ([], y : ys) = y : ys
 zipp (x : xs, y : ys) = (x : y : []) ++ zipp (xs, ys)
 
--- As part of the larget merge_sort algorithm, the merge algorithm takes two sorted lists and combines them into another sorted list
+-- As part of the larger merge_sort algorithm, the merge algorithm takes two sorted lists and combines them into another sorted list
 -- It does this by checking the first element of each list and adding the smaller of the two to a new list.
 -- It then moves on to the next element of the list that contained the smaller value, and recurses.
 merge ([], []) = []
